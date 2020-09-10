@@ -1,0 +1,14 @@
+{
+  "name": "andkion",
+  "version": "1.0.0",
+  "description": "Whatever random stuff I decide to make in my free time",
+  "main": "andkion.js",
+  "scripts": {
+    "test": "node andkion.js"
+  },
+  "author": "atkion",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.3.1"
+  }
+}

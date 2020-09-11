@@ -1,11 +1,11 @@
 var discord = require('discord.js');
 var client = new discord.Client();
-//var pT = require('./presence-timer.js');
-//var presenceTimer = new pT.Timer(client);
+var watcher = require('./watcher.js');
+var presenceTimer = new watcher.Timer(client);
 
 
 client.on('ready', function () {
-	//presenceTimer.startTimer(300000, 600000);
+	presenceTimer.startTimer(10000, 20000);
 	console.log('Logged in as "' + client.user.tag + '".');
 });
 

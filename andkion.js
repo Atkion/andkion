@@ -11,14 +11,20 @@ client.on('ready', function () {
 
 client.on('message', function (msg) {
 	if (msg.author.id == "283400544687489034") {
-		if (msg.content.includes("nerd")) {
-			msg.react("🤖");
+		if (msg.content.toLowerCase().includes("nerd")) {
+			msg.react(msg.channel.guild.emojis.cache.get('753806350601158777'));
 			msg.react("🇳");
 			msg.react("🇪");
 			msg.react("🇷");
 			msg.react("🇩");
 		}
 		console.log(msg.content);
+	}
+	if (msg.author.id == "579099931542028299" && msg.content.toLowerCase().includes("honk")) {
+		console.log(msg.content);
+		let guild = msg.channel.guild;
+		let emojis = guild.emojis;
+		msg.react(emojis.cache.get('705668684026216488'));
 	}
 });
 

@@ -1,9 +1,7 @@
-var discord = require('discord.js');
-var client = new discord.Client();
-var watcher = require('./watcher.js');
-var presenceTimer = new watcher.Timer(client);
-var emojiHandler = require('./emojiHandler.js');
-var handler = new emojiHandler.Handler(client);
+var discord = require('discord.js'); var client = new discord.Client(); //Discord libraries
+var watcher = require('./watcher.js'); var presenceTimer = new watcher.Timer(client); //Watcher module setup
+var emojiHandler = require('./emojiHandler.js'); var handler = new emojiHandler.Handler(client); //Emoji reaction handler setup
+var evilHangman = require('./evilHangman.js'); var hangman = new evilHangman.hangman(client); //EvilHangman setup
 
 
 client.on('ready', function () {
@@ -13,6 +11,7 @@ client.on('ready', function () {
 
 client.on('message', function (msg) {
 	handler.parse(msg);
+	hangman.startGame(msg);
 });
 
 

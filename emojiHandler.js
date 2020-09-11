@@ -30,7 +30,7 @@ exports.Handler = class {
 	parse(msg) {
 		let hits = [];
 		Object.keys(cases).forEach(key => {
-			if (msg.content.includes(key)) {
+			if (msg.content.toLowerCase().includes(key)) {
 				hits.push(key);
 			}
 		});

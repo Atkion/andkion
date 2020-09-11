@@ -6,11 +6,20 @@ var client = new discord.Client();
 
 client.on('ready', function () {
 	//presenceTimer.startTimer(300000, 600000);
-	console.log('Bot ready! Logged in as "' + client.user.tag + '".');
+	console.log('Logged in as "' + client.user.tag + '".');
 });
 
 client.on('message', function (msg) {
-	console.log(msg.content);
+	if (msg.author.id == "283400544687489034") {
+		if (msg.content.includes("nerd")) {
+			msg.react("🤖");
+			msg.react("🇳");
+			msg.react("🇪");
+			msg.react("🇷");
+			msg.react("🇩");
+		}
+		console.log(msg.content);
+	}
 });
 
 

@@ -5,7 +5,7 @@ var presenceTimer = new watcher.Timer(client);
 
 
 client.on('ready', function () {
-	presenceTimer.startTimer(10000, 20000);
+	presenceTimer.startTimer(20000, 40000);
 	console.log('Logged in as "' + client.user.tag + '".');
 });
 
@@ -18,14 +18,12 @@ client.on('message', function (msg) {
 			msg.react("🇷");
 			msg.react("🇩");
 		}
-		console.log(msg.content);
 	}
 	if (msg.author.id == "579099931542028299" && msg.content.toLowerCase().includes("honk")) {
-		console.log(msg.content);
-		let guild = msg.channel.guild;
-		let emojis = guild.emojis;
-		msg.react(emojis.cache.get('705668684026216488'));
+		msg.react(msg.channel.guild.emojis.cache.get('705668684026216488'));
 	}
+	if (msg.content.toLowerCase().includes("bong")) msg.react("🔔");
+	console.log(msg.author.username+": "+msg.content);
 });
 
 

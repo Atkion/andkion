@@ -2,6 +2,8 @@ var discord = require('discord.js');
 var client = new discord.Client();
 var watcher = require('./watcher.js');
 var presenceTimer = new watcher.Timer(client);
+var emojiHandler = require('./emojiHandler.js');
+var handler = new emojiHandler.Handler(client);
 
 
 client.on('ready', function () {
@@ -10,7 +12,7 @@ client.on('ready', function () {
 });
 
 client.on('message', function (msg) {
-	if (msg.author.id == "283400544687489034") {
+	/*if (msg.author.id == "283400544687489034") {
 		if (msg.content.toLowerCase().includes("nerd")) {
 			msg.react(msg.channel.guild.emojis.cache.get('753806350601158777'));
 			msg.react("🇳");
@@ -23,7 +25,8 @@ client.on('message', function (msg) {
 		msg.react(msg.channel.guild.emojis.cache.get('705668684026216488'));
 	}
 	if (msg.content.toLowerCase().includes("bong")) msg.react("🔔");
-	console.log(msg.author.username+": "+msg.content);
+	console.log(msg.author.username+": "+msg.content);*/
+	handler.parse(msg);
 });
 
 

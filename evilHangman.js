@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 let win = false;
 let remainingGuesses = 12;
 let guessedLetters = [];
@@ -15,7 +16,7 @@ const filter = (reaction, user) => {
 }
 
 function getDictionary(filename) {//Returns the entire dictionary.
-	return fs.readFileSync(filename, 'utf8').split('\r\n');
+	return fs.readFileSync(filename).toString().split('\n');
 }
 
 function getDictionaryByNum(filename, size) {//Returns all words in the dictionary of length size.
@@ -111,7 +112,7 @@ function progressGame(msg, letter) {
 		remainingGuesses--;
 		guessedLetters.push(letter);
 		if (guessedLetters.length == 1) {
-			let wordList = getWordList('./dictionary.txt', wordLength, letter);
+			let wordList = getWordList(path.resolve('dictionary.txt'), wordLength, letter);
 			msg.edit("Status: "+getPattern(wordList[0], letter)+". Guesses Remaining: "+remainingGuesses);
 			globalPattern = getPattern(wordList[0], letter);
 			globalWords = wordList;

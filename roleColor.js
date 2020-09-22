@@ -1,4 +1,4 @@
-let allowed = ['273563217790238720', '176821190344704001'];
+let allowed = ['273563217790238720', '176821190344704001', '579099931542028299'];
 
 exports.Painter = class {
 	constructor(client) { this.client = client; }

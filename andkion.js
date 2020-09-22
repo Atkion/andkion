@@ -17,7 +17,7 @@ client.on('message', function (msg) {
 		let hangman = new evilHangman.hangman(client);
 		msg.reply("Loading hangman...").then(msg => hangman.startGame(msg, size));
 	}
-	if (msg.content.includes("paintme")) painter.roleColor(msg);
+	if (msg.content.startsWith("paintme")) painter.roleColor(msg);
 });
 
 

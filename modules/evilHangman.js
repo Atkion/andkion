@@ -112,7 +112,7 @@ function progressGame(msg, letter) {
 		remainingGuesses--;
 		guessedLetters.push(letter);
 		if (guessedLetters.length == 1) {
-			let wordList = getWordList(path.resolve('dictionary.txt'), wordLength, letter);
+			let wordList = getWordList(path.resolve('/modules/dictionary.txt'), wordLength, letter);
 			msg.edit("Status: "+getPattern(wordList[0], letter)+". Guesses Remaining: "+remainingGuesses);
 			globalPattern = getPattern(wordList[0], letter);
 			globalWords = wordList;

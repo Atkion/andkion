@@ -1,8 +1,8 @@
 var discord = require('discord.js'); var client = new discord.Client(); //Discord libraries
-var watcher = require('./watcher.js'); var presenceTimer = new watcher.Timer(client); //Watcher module setup
-var emojiHandler = require('./emojiHandler.js'); var handler = new emojiHandler.Handler(client); //Emoji reaction handler setup
-var evilHangman = require('./evilHangman.js'); //EvilHangman setup
-var roleColor = require('./roleColor.js'); var painter = new roleColor.Painter(client);
+var watcher = require('./modules/watcher.js'); var presenceTimer = new watcher.Timer(client); //Watcher module setup
+var emojiHandler = require('./modules/emojiHandler.js'); var handler = new emojiHandler.Handler(client); //Emoji reaction handler setup
+var evilHangman = require('./modules/evilHangman.js'); //EvilHangman setup
+var roleColor = require('./modules/roleColor.js'); var painter = new roleColor.Painter(client);
 
 
 client.on('ready', function () {

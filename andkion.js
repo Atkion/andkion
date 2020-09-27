@@ -1,7 +1,7 @@
 var discord = require('discord.js'); var client = new discord.Client(); //Discord libraries
 var watcher = require('./modules/watcher.js'); var presenceTimer = new watcher.Timer(client); //Watcher module setup
 var emojiHandler = require('./modules/emojiHandler.js'); var handler = new emojiHandler.Handler(client); //Emoji reaction handler setup
-var evilHangman = require('./modules/evilHangman.js'); //EvilHangman setup
+var evilHangman = require('./modules/evilHangman.js'); let hangman = new evilHangman.hangman(client); //EvilHangman setup
 var roleColor = require('./modules/roleColor.js'); var painter = new roleColor.Painter(client);
 
 
@@ -14,7 +14,6 @@ client.on('message', function (msg) {
 	handler.parse(msg);
 	if (msg.content.includes("hang me a man")) {
 		let size = parseInt(msg.content.match(/\d+/), 10);
-		let hangman = new evilHangman.hangman(client);
 		msg.reply("Loading hangman...").then(msg => hangman.startGame(msg, size));
 	}
 	if (msg.content.startsWith("paintme")) painter.roleColor(msg);

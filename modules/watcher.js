@@ -7,20 +7,21 @@ exports.Timer = class {
 		this.stopTimer();
 		var self = this;
 		function timeLoop(client) {
-			var users = client.users.cache.array();
+			var users = client.users.cache;
 			var viable = [];
-			for (var i = 0; i < users.length; i++) {
-				if (users[i] && users[i].username && !users[i].bot)
-					viable.push(users[i]);
-			}
+			users.each( user => {
+				if (user && user.username && !user.bot)
+					viable.push(user);
+			});
 			if (viable.length) {
 				var chosen = viable[Math.floor(Math.random() * viable.length)];
 				var data = {
 					status: "idle",
-					activity: {
+					activities: [{
 						name: chosen.username,
-						type: "WATCHING"
-					}
+						type: "WATCHING",
+						url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+					}]
 				};
 				client.user.setPresence(data);
 			}

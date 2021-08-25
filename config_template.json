@@ -1,0 +1,19 @@
+{
+  "token": "",
+  "botOwner": "",
+  "statusChannel": [
+    { "guildID": "channelID" },
+	{ "guildID2": "channelID2" }
+  ]
+  "roleColorWhitelist": {
+    "guildID": [
+      "memberID",
+      "memberID2",
+      "memberID3",
+      "memberID4"
+    ],
+    "guildID2": [
+      "memberID"
+    ]
+  }
+}

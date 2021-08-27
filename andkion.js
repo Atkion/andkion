@@ -1,11 +1,11 @@
 var discord = require('discord.js'); 
 var client = new discord.Client({ intents: new discord.Intents(4063) }); //Discord libraries
-var config = require('./config.json');
+var config = require('./config.json'); //importing config file
 var watcher = require('./modules/watcher.js'); var presenceTimer = new watcher.Timer(client); //Watcher module setup
-var emojiHandler = require('./modules/emojiHandler.js'); var handler = new emojiHandler.Handler(client); //Emoji reaction handler setup
-var evilHangman = require('./modules/evilHangman.js'); let hangman = new evilHangman.hangman(client); //EvilHangman setup
+var emojiHandler = require('./modules/emojiHandler.js'); var emojihandler = new emojiHandler.Handler(client); //Emoji reaction handler setup
+var evilHangman = require('./modules/evilHangman.js'); let hangman = new evilHangman.hangman(client); //EvilHangman setup, currently broken
 var roleColor = require('./modules/roleColor.js'); var painter = new roleColor.Painter(client); //RoleColor setup
-var localMusic = require('./modules/localMusic.js'); var music = new localMusic.Music(client); //localMusic setup
+var musicPlayer = require('./modules/musicPlayer.js'); var music = new musicPlayer.Music(client); //Music setup
 
 client.on('ready', function () {
 	//Module that makes it 'watch' random guild members
@@ -13,17 +13,21 @@ client.on('ready', function () {
 	console.log('Logged in as "' + client.user.tag + '".');
 });
 
-client.on('interactionCreate', (interaction) => {
+client.on('interactionCreate', async (interaction) => {
 	if (!interaction.isCommand()) return;
-	if (interaction.commandName == 'music') {
-		interaction.reply({ content: 'I gotchu homie', ephemeral: true });
-		music.action(interaction.options.get('action').value);
+	//Music command handling
+	let musicCommands = ["clear", "join", "leave", "pause", "play", "playing", "resume", "shuffle", "skip", "queue", "playlists"];
+	if (musicCommands.includes(interaction.commandName)) {
+		interaction.reply({ 
+			content: await music.action(interaction.commandName, interaction), ephemeral: true 
+		});
 	}
+	//Any other slash command handling goes here, none so far
 });
 
 client.on('messageCreate', function (msg) {
 	//Emoji Handler
-	handler.parse(msg);
+	emojihandler.parse(msg);
 	
 	//Evil Hangman thing (Currently broken, somehow it can't read dictionary.txt and I'm not fixing it for a 3rd time fuck you)
 	/*if (msg.content.includes("hang me a man")) {
@@ -35,49 +39,72 @@ client.on('messageCreate', function (msg) {
 	if (msg.content.startsWith("paintme")) painter.roleColor(msg);
 });
 
-
+	
 
 client.login(config.token);
 
 
+
+
+
+
 //Post the slash command for music purposes
-/*
-	let commandInfo = {
-		data: { 
-			name: "music",
-			description: "Utilizes Andkion's Music Module",
-			options: [{
-				name: "action",
-				type: 3,
-				description: "The subcommand, check the options",
-				required: true,
-				choices: [
-					{
-						name: "join",
-						value: "join"
-					},
-					{	
-						name: "play",
-						value: "play"
-					},
-					{
-						name: "pause",
-						value: "pause"
-					},
-					{
-						name: "resume",
-						value: "resume"
-					},
-					{
-						name: "skip",
-						value: "skip"
-					},
-					{
-						name: "leave",
-						value: "leave"
-					}
-				]
-			}]
-		}
-	};
-	let command = client.api.applications(client.user.id).guilds('702547042412658811').commands.post(commandInfo).then(console.log).catch(console.error);*/
+
+/*client.login(config.token).then( async () => {
+let joinC = {
+	name: "join",
+	description: "Joins your voice channel."
+}
+let playingC = {
+	name: "playing",
+	description: "Displays the current song."
+}
+let playC = {
+	name: "play",
+	description: "Plays a song or playlist, or adds it to the queue if something is playing already.",
+	options: [{
+		name: "media",
+		type: 3,
+		description: "Can be a youtube link, spotify link, local playlist name, or a youtube search string.",
+		required: true
+	}]
+}
+let resumeC = {
+	name: "resume",
+	description: "Resumes a song after being paused."
+}
+let pauseC = {
+	name: "pause",
+	description: "Pauses a song so it can be resumed later."
+
+}
+let skipC = {
+	name: "skip",
+	description: "Skips to the next song in the queue."
+}
+let leaveC = {
+	name: "leave",
+	description: "Forces the bot to leave the voice channel."
+}
+let shuffleC = {
+	name: "shuffle",
+	description: "Toggles shuffle. If enabled, queue is shuffled at startup and each time the queue loops."
+}
+let clearC = {
+	name: "clear",
+	description: "Forcibly clears the queue."
+}
+let queueC = {
+	name: "queue",
+	description: "Shows the next 5 songs in the queue."
+}
+let playlistC = {
+	name: "playlists",
+	description: "Lists local playlists. Note that this is atkion's local music, you probably won't care."
+}
+let commands = [joinC, playingC, playC, resumeC, pauseC, skipC, leaveC, shuffleC, clearC, queueC, playlistC];
+
+let cMan = await client.guilds.cache.get('351512022283976715').commands.set(commands);
+console.log(cMan);
+});*/
+

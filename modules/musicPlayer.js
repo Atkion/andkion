@@ -2,7 +2,6 @@ const Discord = require('discord.js');
 const dVoice = require('@discordjs/voice');
 const fs = require('fs');
 const path = require('path');
-const ytdl = require('ytdl-core'); //Abort issues when playing, but still wanted for url validation
 const youtube = require('play-dl');
 const NodeID3 = require('node-id3');
 let config = require('../config.json');
@@ -139,7 +138,7 @@ exports.Music = class {
 			let tags = NodeID3.read(track);
 			return ["`"+((tags.title) ? tags.title : track.split("\\")[track.split("\\").length-1])+"` from `"
 				+track.replace(musicFolder, "")
-				.replace(track.split("\\")[track.split("\\").length-1], "")+"`", null];
+				.replace(track.split("/")[track.split("/").length-1], "")+"`", null];
 		}
 		else if (await this.checkYoutubeVideoLink(track)) {
 			let temp = await youtube.video_info(track);
@@ -207,6 +206,7 @@ exports.Music = class {
 	}
 	clear() { 
 		this.queue = []; 
+		this.playlistIndex = 0;
 		return "Queue Cleared."
 	}
 	skip(interaction) {

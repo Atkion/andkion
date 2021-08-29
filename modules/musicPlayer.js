@@ -271,7 +271,7 @@ exports.Music = class {
 		if (act == 'leave') return this.leaveChannel(); 
 		if (act == 'shuffle') return this.setShuffle(interaction);
 		if (act == 'clear') return this.clear();
-		if (act == 'playlists') return this.localPlaylists.toString();
+		if (act == 'playlists') return localPlaylists.toString();
 		if (act == 'queue') return await this.listQueue();
 		return "Invalid command. This should never appear, and is a bug with Andkion. Tell atkion what you did to get this message.";
 	}

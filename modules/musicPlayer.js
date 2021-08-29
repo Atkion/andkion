@@ -136,7 +136,7 @@ exports.Music = class {
 	async getTrackName(track) {
 		if (path.isAbsolute(track)){
 			let tags = NodeID3.read(track);
-			return ["`"+((tags.title) ? tags.title : track.split("\\")[track.split("\\").length-1])+"` from `"
+			return ["`"+((tags.title) ? tags.title : track.split("/")[track.split("/").length-1])+"` from `"
 				+track.replace(musicFolder, "")
 				.replace(track.split("/")[track.split("/").length-1], "")+"`", null];
 		}

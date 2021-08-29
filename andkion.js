@@ -5,7 +5,9 @@ var watcher = require('./modules/watcher.js'); var presenceTimer = new watcher.T
 var emojiHandler = require('./modules/emojiHandler.js'); var emojihandler = new emojiHandler.Handler(client); //Emoji reaction handler setup
 var evilHangman = require('./modules/evilHangman.js'); let hangman = new evilHangman.hangman(client); //EvilHangman setup, currently broken
 var roleColor = require('./modules/roleColor.js'); var painter = new roleColor.Painter(client); //RoleColor setup
-var musicPlayer = require('./modules/musicPlayer.js'); var music = new musicPlayer.Music(client); //Music setup
+var musicPlayer = require('./modules/musicPlayer.js'); 
+var musicModules = [];
+var music = new musicPlayer.Music(client); //Music setup
 
 client.on('ready', function () {
 	//Module that makes it 'watch' random guild members
@@ -18,8 +20,20 @@ client.on('interactionCreate', async (interaction) => {
 	//Music command handling
 	let musicCommands = ["clear", "join", "leave", "pause", "play", "playing", "resume", "shuffle", "skip", "queue", "playlists"];
 	if (musicCommands.includes(interaction.commandName)) {
-		interaction.reply({ 
-			content: await music.action(interaction.commandName, interaction), ephemeral: true 
+		await interaction.deferReply({ ephemeral: true});
+		let music;
+		musicModules.forEach((module) => {
+			if (module.getGuildId() == interaction.guildId) music = module;
+		});
+		if (!music) {
+			music = new musicPlayer.Music(client, interaction.guildId);
+			musicModules.push(music);
+		}
+		await interaction.editReply({ 
+			content: " ", ephemeral: true, embeds: [new discord.MessageEmbed({
+				description: await music.action(interaction.commandName, interaction),
+				color: "#A14545"
+			})]
 		});
 	}
 	//Any other slash command handling goes here, none so far
@@ -80,7 +94,13 @@ let pauseC = {
 }
 let skipC = {
 	name: "skip",
-	description: "Skips to the next song in the queue."
+	description: "Skips to the next song in the queue.",
+	options: [{
+		name: "number",
+		description: "The number of songs to skip (default 1). If you skip past the queue, it will restart.",
+		type: 4,
+		required: false
+	}]
 }
 let leaveC = {
 	name: "leave",
@@ -88,7 +108,13 @@ let leaveC = {
 }
 let shuffleC = {
 	name: "shuffle",
-	description: "Toggles shuffle. If enabled, queue is shuffled at startup and each time the queue loops."
+	description: "Sets auto-shuffle. If enabled, the queue will immediately shuffle and then reshuffle upon loop.",
+	options: [{
+		name: "set",
+		type: 5,
+		description: "The setting to apply (true/false)",
+		required: true
+	}]
 }
 let clearC = {
 	name: "clear",
@@ -96,7 +122,7 @@ let clearC = {
 }
 let queueC = {
 	name: "queue",
-	description: "Shows the next 5 songs in the queue."
+	description: "Shows the next 5 songs in the queue. Can be pretty slow."
 }
 let playlistC = {
 	name: "playlists",

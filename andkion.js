@@ -20,7 +20,7 @@ client.on('interactionCreate', async (interaction) => {
 	//Music command handling
 	let musicCommands = ["clear", "join", "leave", "pause", "play", "playing", "resume", "shuffle", "skip", "queue", "playlists"];
 	if (musicCommands.includes(interaction.commandName)) {
-		await interaction.deferReply({ ephemeral: true});
+		await interaction.deferReply();
 		let music;
 		musicModules.forEach((module) => {
 			if (module.getGuildId() == interaction.guildId) music = module;
@@ -30,7 +30,7 @@ client.on('interactionCreate', async (interaction) => {
 			musicModules.push(music);
 		}
 		await interaction.editReply({ 
-			content: " ", ephemeral: true, embeds: [new discord.MessageEmbed({
+			content: " ", embeds: [new discord.MessageEmbed({
 				description: await music.action(interaction.commandName, interaction),
 				color: "#A14545"
 			})]

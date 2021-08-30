@@ -126,7 +126,7 @@ exports.Music = class {
 	async checkYoutubeVideoLink(url) {
 		if (!url || !url.split('watch?v=')[1]) return false;
 		try {
-			await youtube.video_info(url);
+			await youtube.video_basic_info(url);
 			return true;
 		}
 		catch {
@@ -249,7 +249,7 @@ exports.Music = class {
 		} //get full file addr(s)
 		else if (await this.checkYoutubePlaylistLink(input)) { 
 
-		//REMINDER TO PUT IN A GITHUB ISSUE FOR THE PL VALIDATION (not all playlist IDs are 34 characters, older ones can be less) if it doesn't get fixed. Example: https://www.youtube.com/playlist?list=PLC5AE6E1EEA630D30
+		//REMINDER TO PUT IN A GITHUB ISSUE FOR THE PL VALIDATION (not all playlist IDs are 34 characters, older ones can be 18) if it doesn't get fixed. Example: https://www.youtube.com/playlist?list=PLC5AE6E1EEA630D30
 			let result = await this.queueYoutubePlaylist(input);
 			input = result[0]; numQueued = result[1];
 		}

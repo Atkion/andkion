@@ -5,6 +5,9 @@ var watcher = require('./modules/watcher.js'); var presenceTimer = new watcher.T
 var emojiHandler = require('./modules/emojiHandler.js'); var emojihandler = new emojiHandler.Handler(client); //Emoji reaction handler setup
 var evilHangman = require('./modules/evilHangman.js'); let hangman = new evilHangman.hangman(client); //EvilHangman setup, currently broken
 var roleColor = require('./modules/roleColor.js'); var painter = new roleColor.Painter(client); //RoleColor setup
+var moderator = require('./modules/autoMod.js'); var autoMod = new moderator.AutoMod(client);
+//AutoMod setup, mostly just a placeholder for any future funtionality I want here.
+
 var musicPlayer = require('./modules/musicPlayer.js'); 
 var musicModules = [];
 var music = new musicPlayer.Music(client); //Music setup
@@ -43,6 +46,9 @@ client.on('messageCreate', function (msg) {
 	//Emoji Handler
 	emojihandler.parse(msg);
 	
+	//AutoMod processing
+	autoMod.parse(msg);
+	
 	//Evil Hangman thing (Currently broken, somehow it can't read dictionary.txt and I'm not fixing it for a 3rd time fuck you)
 	/*if (msg.content.includes("hang me a man")) {
 		let size = parseInt(msg.content.match(/\d+/), 10);
@@ -51,6 +57,7 @@ client.on('messageCreate', function (msg) {
 	
 	//Role Color command
 	if (msg.content.startsWith("paintme")) painter.roleColor(msg);
+	
 });
 
 	

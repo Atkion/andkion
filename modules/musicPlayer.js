@@ -41,11 +41,13 @@ exports.Music = class {
 	}
 	async playNextSong() {
 		if (!this.queue[0]) return "Nothing in queue. Playback will stop when song ends.";
+		this.playlistIndex++;
+		if (this.playlistIndex >= this.queue.length) this.playlistIndex = 0;
 		
 		let mode;
 		if (path.isAbsolute(this.queue[this.playlistIndex])) mode = "local";
-		else if (await this.checkYoutubeVideoLink(this.queue[this.playlistIndex])) mode = "youtube";
-		else return "Unknown item in queue. This should not happen, contact atkion.";
+		else if (youtube.validate(this.queue[this.playlistIndex])) mode = "youtube";
+		else return "Unknown item in queue. This should not happen, contact atkion. ";
 	
 		if (mode == "local") {
 			await this.playLocalAudio(this.queue[this.playlistIndex]);
@@ -53,8 +55,6 @@ exports.Music = class {
 		else if (mode == "youtube") {
 			await this.playYoutubeAudio(this.queue[this.playlistIndex]);
 		}
-		this.playlistIndex++;
-		if (this.playlistIndex >= this.queue.length) this.playlistIndex = 0;
 		return "Now playing "+await this.getCurrent();
 	}
 	async playAudio(client, interaction) {
@@ -113,26 +113,6 @@ exports.Music = class {
 		let info = await youtube.video_info(yt_info[0].url);
 		return info.video_details.title;
 	}
-	async checkYoutubePlaylistLink(url) {
-		try {
-			await youtube.playlist_info(url, true);
-			return true;
-		}
-		catch(err) {
-			//console.log(err);
-			return false;
-		}
-	}
-	async checkYoutubeVideoLink(url) {
-		if (!url || !url.split('watch?v=')[1]) return false;
-		try {
-			await youtube.video_basic_info(url);
-			return true;
-		}
-		catch {
-			return false;
-		}
-	}	
 	async getTrackName(track) {
 		if (path.isAbsolute(track)){
 			let tags = NodeID3.read(track);
@@ -140,8 +120,8 @@ exports.Music = class {
 				+track.replace(musicFolder, "")
 				.replace(track.split("/")[track.split("/").length-1], "")+"`", null];
 		}
-		else if (await this.checkYoutubeVideoLink(track)) {
-			let temp = await youtube.video_info(track);
+		else if (youtube.validate(track)) {
+			let temp = await youtube.video_basic_info(track);
 			return [temp.video_details.title, track];
 		}
 		return "Error. Not sure what happened here.";
@@ -228,35 +208,33 @@ exports.Music = class {
 	}
 	async getCurrent() {
 		let result;
-		let track = await this.getTrackName(this.queue[(this.playlistIndex == 0) ? this.playlistIndex : this.playlistIndex-1]);
+		if (!this.queue[this.playlistIndex]) return "No song queued.";
+		let track = await this.getTrackName(this.queue[this.playlistIndex]);
 		if (track[1]) result = "["+track[0]+"](<"+track[1]+">)\n";
 		else result = track[0];
-		
 		return result;
 	}
 	async queueSongs(input) {
-		let numQueued = 1;
-		if (await this.checkYoutubeVideoLink(input)) {
-			this.queue.push(input);
-			let temp = await youtube.video_info(input);
-			input = temp.video_details.title;
-		}
-		//else if (/*check for spotify playlist*/false) {} 
-		//else if (/*check for spotify link*/false) {}
-		else if (localPlaylists.includes(input)) {
+		let numQueued;
+		if (localPlaylists.includes(input)) {
 			let result = this.queueLocalFolder(input);
 			input = result[0]; numQueued = result[1];
-		} //get full file addr(s)
-		else if (await this.checkYoutubePlaylistLink(input)) { 
-
-		//REMINDER TO PUT IN A GITHUB ISSUE FOR THE PL VALIDATION (not all playlist IDs are 34 characters, older ones can be 18) if it doesn't get fixed. Example: https://www.youtube.com/playlist?list=PLC5AE6E1EEA630D30
+		}
+		else if (youtube.validate_playlist(input)) { 
 			let result = await this.queueYoutubePlaylist(input);
 			input = result[0]; numQueued = result[1];
 		}
+		else if (youtube.validate(input)) {
+			this.queue.push(input);
+			let temp = await youtube.video_basic_info(input);
+			input = "["+temp.video_details.title+"](<"+input+">)";
+		}
+		//else if (/*check for spotify link*/false) {}
+		//else if (/*check for spotify playlist*/false) {} 
 		else {
 			input = await this.queueYoutubeSearch(input);
 		}
-		return input+" has been queued. ("+numQueued+" song(s))";
+		return input+" has been queued. "+ ((numQueued) ? "("+numQueued+" songs)" : "");
 	}
 	getGuildId() {
 		return this.guildId;

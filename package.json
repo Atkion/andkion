@@ -17,6 +17,6 @@
     "ffmpeg": "^0.0.4",
     "libsodium-wrappers": "^0.7.9",
     "node-id3": "^0.2.3",
-    "play-dl": "^0.6.1"
+    "play-dl": "^0.7.3"
   }
 }

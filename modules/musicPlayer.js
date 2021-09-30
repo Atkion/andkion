@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const dVoice = require('@discordjs/voice');
 const fs = require('fs');
 const path = require('path');
-const youtube = require('play-dl');
+const play = require('play-dl');
 const NodeID3 = require('node-id3');
 let config = require('../config.json');
 let filename = path.resolve('./config.json');
@@ -46,7 +46,9 @@ exports.Music = class {
 		
 		let mode;
 		if (path.isAbsolute(this.queue[this.playlistIndex])) mode = "local";
-		else if (youtube.validate(this.queue[this.playlistIndex])) mode = "youtube";
+		else if (play.yt_validate(this.queue[this.playlistIndex])=="video") mode = "youtube";
+		else if (play.sp_validate(this.queue[this.playlistIndex])=="track") mode = "spotify";
+		else if (await play.so_validate(this.queue[this.playlistIndex])=="track") mode = "soundcloud";
 		else return "Unknown item in queue. This should not happen, contact atkion. ";
 	
 		if (mode == "local") {
@@ -54,6 +56,13 @@ exports.Music = class {
 		}
 		else if (mode == "youtube") {
 			await this.playYoutubeAudio(this.queue[this.playlistIndex]);
+		}
+		else if (mode == "spotify") {
+			let url = await this.getYoutubeSearchFromSpotify(this.queue[this.playlistIndex]);
+			await this.playYoutubeAudio(url);
+		}
+		else if (mode == "soundcloud") {
+			await this.playSoundcloudAudio(this.queue[this.playlistIndex]);
 		}
 		return "Now playing "+await this.getCurrent();
 	}
@@ -91,26 +100,43 @@ exports.Music = class {
 	}	
 	async playYoutubeAudio(url) {
 		this.audio = url;
-		let yt_info = await youtube.video_info(this.audio);
-		let stream = await youtube.stream_from_info(yt_info);
+		let yt_info = await play.video_info(this.audio);
+		let stream = await play.stream_from_info(yt_info);
 		this.audio = yt_info.video_details.title;
 		
 		this.audioResource = dVoice.createAudioResource(stream.stream, {inputType: stream.type, inlineVolume: true });
 		
 		this.audioPlayer.play(this.audioResource);
 	}
+	async playSoundcloudAudio(url) {
+		this.audio = url;
+		let so_info = await play.soundcloud(url);
+		let stream = await play.stream_from_info(so_info);
+		this.audio = so_info.title
+		
+		this.audioResource = dVoice.createAudioResource(stream.stream, {inputType: stream.type, inlineVolume: true });
+		
+		this.audioPlayer.play(this.audioResource);
+	}
 	async queueYoutubePlaylist(url) {
-		let playlist = await youtube.playlist_info(url,true);
+		let playlist = await play.playlist_info(url,true);
 		playlist = await playlist.fetch();
 		playlist.videos.forEach((video) => {
 			this.queue.push(video.url);
 		});
-		return [playlist.title, playlist.videoCount];
+		//Sometimes playlist.total_videos is higher than playlist.videos.length.
+		//Bug with play-dl perhaps? Not a huge deal so far.
+		return [playlist.title, playlist.total_videos];
+	}
+	async getYoutubeSearchFromSpotify(url) {
+		let data = await play.spotify(url);
+		let yt_info = await play.search(data.name, {limit: 1});
+		return yt_info[0].url;
 	}
 	async queueYoutubeSearch(request) {
-		let yt_info = await youtube.search(request, {limit: 1});
+		let yt_info = await play.search(request, {limit: 1});
 		this.queue.push(yt_info[0].url);
-		let info = await youtube.video_info(yt_info[0].url);
+		let info = await play.video_info(yt_info[0].url);
 		return info.video_details.title;
 	}
 	async getTrackName(track) {
@@ -120,12 +146,39 @@ exports.Music = class {
 				+track.replace(musicFolder, "")
 				.replace(track.split("/")[track.split("/").length-1], "")+"`", null];
 		}
-		else if (youtube.validate(track)) {
-			let temp = await youtube.video_basic_info(track);
+		else if (play.yt_validate(track)=="video") {
+			let temp = await play.video_basic_info(track);
 			return [temp.video_details.title, track];
 		}
+		else if (play.sp_validate(track)=="track") {
+			let temp = await play.spotify(track);
+			return [temp.name, temp.url];
+		}
+		else if (await play.so_validate(track)=="track") {
+			let temp = await play.soundcloud(track);
+			return [temp.name, temp.url];
+		}
 		return "Error. Not sure what happened here.";
-	}	
+	}
+	async queueSpotifyPlaylist(url) {
+		let data = await play.spotify(url);
+		await data.fetch();
+		for (let page of data.fetched_tracks) {
+			for (let track of page[1]) {
+				if (track.url) this.queue.push(track.url);
+			}
+		}
+		return ["["+data.name+"](<"+url+">)", data.total_tracks];
+	}
+	async queueSoundcloudPlaylist(url) {
+		let data = await play.soundcloud(url);
+		await data.fetch();
+		console.log(data);
+		for (let track of data.tracks) {
+			if (track.url) this.queue.push(track.url);
+		}
+		return ["["+data.name+"](<"+url+">)", data.total_tracks];
+	}
 	joinChannel (client, interaction) {
 		this.voiceChannel = client.channels.cache.get(interaction.member.voice.channelId);
 		if (!this.voiceChannel) return "Error. Are you in a voice channel, and is it available to Andkion?";
@@ -167,15 +220,22 @@ exports.Music = class {
 		}
 	}
 	setShuffle(interaction) {
-		let bool = interaction.options.get("set").value;
-		this.shuffle = bool;
-		config.shuffle[this.guildId] = bool;
-		fs.writeFileSync(filename, JSON.stringify(config, null, 2));
-		if (bool) { 
-			this.shuffleArray(this.queue); 
-			return "Queue has been shuffled, and auto-shuffle has been toggled on.";
+		if (interaction.options.get("set")) { 
+			let bool = interaction.options.get("set").value;
+			this.shuffle = bool;
+			config.shuffle[this.guildId] = bool;
+			fs.writeFileSync(filename, JSON.stringify(config, null, 2));
+			if (bool) { 
+				this.shuffleArray(this.queue); 
+				return "Queue has been shuffled, and auto-shuffle has been toggled on.";
+			}
+			else return "auto-shuffle has been toggled off.";
 		}
-		else return "auto-shuffle has been toggled off.";
+		else {
+			this.shuffleArray(this.queue);
+			return "Queue has been shuffled.";
+		}
+		
 		
 	}
 	shuffleArray(arr) {
@@ -220,17 +280,45 @@ exports.Music = class {
 			let result = this.queueLocalFolder(input);
 			input = result[0]; numQueued = result[1];
 		}
-		else if (youtube.validate_playlist(input)) { 
-			let result = await this.queueYoutubePlaylist(input);
+		else if (play.yt_validate(input) != false) {
+			let type = play.yt_validate(input);
+			if (type=="video") {
+				this.queue.push(input);
+				let temp = await play.video_basic_info(input);
+				input = "["+temp.video_details.title+"](<"+input+">)";
+			}
+			if (type=="playlist") {
+				let result = await this.queueYoutubePlaylist(input);
 			input = result[0]; numQueued = result[1];
+			}
 		}
-		else if (youtube.validate(input)) {
-			this.queue.push(input);
-			let temp = await youtube.video_basic_info(input);
-			input = "["+temp.video_details.title+"](<"+input+">)";
+		else if (play.sp_validate(input) != false) {
+			if (play.is_expired()) await play.refreshToken();
+			let type = play.sp_validate(input);
+			switch(type) {
+				case "track":
+					let data = await play.spotify(input);
+					input = await this.queueYoutubeSearch(data.name);
+					break;
+				case "album":
+				case "playlist":
+					let result = await this.queueSpotifyPlaylist(input);
+					input = result[0]; numQueued = result[1];
+					break;
+			}
 		}
-		//else if (/*check for spotify link*/false) {}
-		//else if (/*check for spotify playlist*/false) {} 
+		else if (await play.so_validate(input) != false) {
+			let type = await play.so_validate(input);
+			if (type=="track") {
+				this.queue.push(input);
+				let temp = await play.soundcloud(input);
+				input = "["+temp.name+"](<"+input+">)";
+			}
+			if (type=="playlist") {
+				let result = await this.queueSoundcloudPlaylist(input);
+				input = result[0]; numQueued = result[1];
+			}
+		} 
 		else {
 			input = await this.queueYoutubeSearch(input);
 		}

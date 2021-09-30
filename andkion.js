@@ -115,12 +115,12 @@ let leaveC = {
 }
 let shuffleC = {
 	name: "shuffle",
-	description: "Sets auto-shuffle. If enabled, the queue will immediately shuffle and then reshuffle upon loop.",
+	description: "Optional: Sets auto-shuffle. If enabled, the queue will immediately shuffle and then reshuffle upon loop.",
 	options: [{
 		name: "set",
 		type: 5,
 		description: "The setting to apply (true/false)",
-		required: true
+		required: false
 	}]
 }
 let clearC = {

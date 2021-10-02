@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const play = require('play-dl');
 const NodeID3 = require('node-id3');
+const https = require('https');
 let config = require('../config.json');
 let filename = path.resolve('./config.json');
 let musicFolder = path.resolve('../MusicRepo');
@@ -119,7 +120,7 @@ exports.Music = class {
 		this.audioPlayer.play(this.audioResource);
 	}
 	async queueYoutubePlaylist(url) {
-		let playlist = await play.playlist_info(url,true);
+		let playlist = await play.playlist_info(url,{ incomplete: true});
 		playlist = await playlist.fetch();
 		playlist.videos.forEach((video) => {
 			this.queue.push(video.url);
@@ -142,9 +143,10 @@ exports.Music = class {
 	async getTrackName(track) {
 		if (path.isAbsolute(track)){
 			let tags = NodeID3.read(track);
-			return ["`"+((tags.title) ? tags.title : track.split("/")[track.split("/").length-1])+"` from `"
+			return ["`"+((tags.title) ? tags.title : track.split("/")[track.split("/").length-1].split("\\")[track.split("\\").length-1])+"` from `"
 				+track.replace(musicFolder, "")
-				.replace(track.split("/")[track.split("/").length-1], "")+"`", null];
+				.replace(track.split("/")[track.split("/").length-1]
+				.split("\\")[track.split("\\").length-1], "")+"`", null];
 		}
 		else if (play.yt_validate(track)=="video") {
 			let temp = await play.video_basic_info(track);
@@ -155,8 +157,32 @@ exports.Music = class {
 			return [temp.name, temp.url];
 		}
 		else if (await play.so_validate(track)=="track") {
+			
+			//This needs authorization, don't really care enough to do that rn
+			/*let trackID = track.split('/')[track.split('/').length-1];
+			let name, url;
+			console.log(trackID);
+			let opt = {
+				hostname: 'api.soundcloud.com',
+				port: 443,
+				path: '/tracks/'+trackID,
+				method: 'GET'
+			}
+			let req = https.request(opt, res => {
+				console.log(res.statusCode);
+				res.on('data', d=> {
+					console.log(d);
+					name = d.name;
+					url = d.permalink_url;
+				});
+			});
+			req.on('error', er => { console.error(er); });
+			req.end();
+			
+			return [name, url];*/
+			
 			let temp = await play.soundcloud(track);
-			return [temp.name, temp.url];
+			return [temp.name, temp.user.url];
 		}
 		return "Error. Not sure what happened here.";
 	}
@@ -173,7 +199,6 @@ exports.Music = class {
 	async queueSoundcloudPlaylist(url) {
 		let data = await play.soundcloud(url);
 		await data.fetch();
-		console.log(data);
 		for (let track of data.tracks) {
 			if (track.url) this.queue.push(track.url);
 		}
@@ -288,6 +313,7 @@ exports.Music = class {
 				input = "["+temp.video_details.title+"](<"+input+">)";
 			}
 			if (type=="playlist") {
+				console.log("playlist");
 				let result = await this.queueYoutubePlaylist(input);
 			input = result[0]; numQueued = result[1];
 			}
